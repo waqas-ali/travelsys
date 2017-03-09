@@ -1,0 +1,66 @@
+
+
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+          http://www.springframework.org/schema/security
+          http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+
+
+    <!--    <http pattern="/content/**" security="none"/>-->
+    <http auto-config="true">
+        <csrf disabled="true"/>
+        <intercept-url pattern="/login.htm" access="isAnonymous()" />
+        <intercept-url pattern="/base/register.htm" access="isAnonymous()" />
+        <intercept-url pattern="/base/home.htm"  access="hasAnyRole('ROLE_USER','ROLE_ADMIN')" />
+        <intercept-url pattern="/base/getAllUsers.htm" access="hasRole('ROLE_ADMIN')"  />
+        <intercept-url pattern="/offer/home.htm" access="hasRole('ROLE_USER')"  />
+        <intercept-url pattern="/offer/getOffers.htm" access="hasRole('ROLE_USER')"  />
+        <intercept-url pattern="/offer/buyTicket.htm" access="hasRole('ROLE_USER')"  />
+        <intercept-url pattern="/summary/home.htm"  access="hasAnyRole('ROLE_USER','ROLE_ADMIN')" />
+        <intercept-url pattern="/summary/getAllOrders.htm" access="hasRole('ROLE_ADMIN')"  />
+        <intercept-url pattern="/summary/getOrdersByUser.htm" access="hasRole('ROLE_USER')"  />
+        <intercept-url pattern="/summary/downloadSummary.htm" access="hasRole('ROLE_USER')"  />
+        <intercept-url pattern="/summary/emailSummary.htm" access="hasRole('ROLE_USER')"  />
+        
+        <form-login login-page='/base/login.htm'
+                    login-processing-url="/j_spring_security_check"
+                    default-target-url='/base/home.htm'                    
+                    always-use-default-target='true' 
+                    authentication-failure-url="/base/loginfailed.htm"
+                    authentication-success-handler-ref="authenticationSuccessHandler"/>
+        <logout invalidate-session="true"
+                logout-url="/j_spring_security_logout"
+                success-handler-ref="logoutHandler"
+                delete-cookies="JSESSIONID"
+
+        />
+    </http>
+    
+    <beans:bean id="authenticationSuccessHandler" class="com.crossover.project.authentication.AuthSuccessHandler">
+        <beans:property name="defaultTargetUrl" value="/base/home.htm"></beans:property>
+    </beans:bean>
+    <beans:bean id="logoutHandler" class="com.crossover.project.authentication.LogoutHandler">
+        <beans:constructor-arg value="/base/logout.htm"></beans:constructor-arg>
+    </beans:bean>
+
+    <beans:bean id="authenticationManager"
+                class="org.springframework.security.authentication.ProviderManager">
+        <beans:constructor-arg>
+            <beans:list>
+                <beans:ref bean="authenticationProvider"/>
+            </beans:list>
+        </beans:constructor-arg>
+    </beans:bean>
+
+    <beans:bean id="authenticationProvider" class="com.crossover.project.authentication.UserAuthenticationProvider">
+        <beans:property name="template" ref="userJDBC" />
+    </beans:bean>
+
+    <authentication-manager>
+        <authentication-provider ref="authenticationProvider"/>
+    </authentication-manager>
+</beans:beans>
